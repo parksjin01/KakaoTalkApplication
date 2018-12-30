@@ -13,18 +13,18 @@ Class KakaoTalkClient: public Application
 public:
     KakaoTalkClient();
     virtual ~KakaoTalkClient();
-    
+
     void setSocket (Ptr<Socket> socket);
     void setServer (Address address);
-    
+
 private:
     virtual void StartApplication(void);
     virtual void StopApplication(void);
-    
+
     Ptr<Packet> createPacket(std::string message);
     void sendPacket(Ptr<Packet> packet);
-    Ptr<Packet> recvPacket(void);
-    
+    void recvPacket(Ptr<Socket> socket);
+
     Ptr<Socket> socket;
     Address server_address;
 }
@@ -35,7 +35,7 @@ server_address()
 {
 }
 
-KakaoTalkClient::~KakaoTalkClient():
+KakaoTalkClient::~KakaoTalkClient()
 {
     socket = 0;
 }
@@ -65,12 +65,13 @@ void KakaoTalkClient::StopApplication(void)
     }
 }
 
-void KakaoTalkClient::createPacket(std::string str)
+Ptr<Packet> KakaoTalkClient::createPacket(std::string str)
 {
-    uint32_t *data = new uint32_t[str.size() + 1];
-    memcpy(data, str.c_str(), str.size() + 1)
-    Ptr<Packet> packet = Create<Packet>(data, str.size() + 1);
-    return packet;
+  uint32_t size = str.size() + 1;
+  uint8_t *data = new uint8_t[size];
+  memcpy(data, str.c_str(), size);
+  Ptr<Packet> packet = Create<Packet>(data, size);
+  return packet;
 }
 
 void KakaoTalkClient::sendPacket(Ptr<Packet> packet)
@@ -78,10 +79,11 @@ void KakaoTalkClient::sendPacket(Ptr<Packet> packet)
     socket->Send(packet);
 }
 
-void KakaoTalkClient::recvPacket(void)
+void KakaoTalkClient::recvPacket(Ptr<Socket> socket)
 {
-    Ptr<Packet> p;
-    while ((p = socket->RecvFrom(server_address))) {
-        std::cout << "Packet: " << p->Print();
-    }
+  Ptr<Packet> p;
+  while ((p = socket->RecvFrom(server_address))) {
+      std::cout << "Packet: " << std::endl;
+      p->Print(std::cout);
+  }
 }
