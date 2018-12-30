@@ -105,8 +105,14 @@ void KakaoTalkClient::recvPacket(Ptr<Socket> socket)
 {
   Ptr<Packet> p;
   while ((p = socket->RecvFrom(server_address))) {
-      std::cout << "Packet: " << std::endl;
-      p->Print(std::cout);
+      std::ostringstream convert;
+      uint8_t *buffer = new uint8_t[p->GetSize ()]; 
+      p->CopyData (buffer, p->GetSize ());
+
+      for(uint32_t i = 0; i < p->GetSize(); i++)
+        convert << buffer[i];
+
+      std::cout << "Packet: " << convert.str() << std::endl;
   }
 }
 
@@ -141,7 +147,7 @@ main (int argc, char *argv[])
   uint16_t sinkPort = 9;
   Address sinkAddress (InetSocketAddress (interfaces.GetAddress (1), sinkPort));
   // PacketSinkHelper packetSinkHelper ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), sinkPort));
-  UdpEchoServerHelper echoServer (9);
+  TcpEchoServerHelper echoServer (9);
   ApplicationContainer sinkApps = echoServer.Install (nodes.Get (1));
   sinkApps.Start (Seconds (0.));
   sinkApps.Stop (Seconds (20.));
